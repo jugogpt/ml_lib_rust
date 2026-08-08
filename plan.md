@@ -24,3 +24,6 @@ the gradient tells us the direction we need to move in order to minimize the gra
 
 The "Helper" part of our library will go through all of our training examples and try to update the gradient in order to aid us in finding this minimum and automatically adjust our gradients
 
+
+
+

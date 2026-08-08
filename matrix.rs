@@ -219,14 +219,131 @@ pub fn mat_mul(
 
 
 pub fn mat_relu(out: &mut Matrix, input: &Matrix) {
+    //base case, if the dimensions don't align, then do not run 
     if out.rows != input.rows || out.cols != input.cols { 
         return false;
     }
 
     for i: usize in 0..out.data.len() {
-        out.data[i] = input.data[i].max(0.0);
+        out.data[i] = input.data[i].max(0.0); //in short, set the negatives to 0
     }
 
+    true
+
 }
+
+pub fn mat_softmax(out: &mut Matrix, input: &Matrix) {
+    if out.rows != input.rows || out.cols != input.cols {
+        return false;
+    }
+
+    let mut sum: f32 = 0.0f32;
+    //norm by the .exp() sum of matrix elements
+    for i: usize in 0..out.data.len() { // for each index ,
+        out.data[i] = input.data[i].exp(); // classic softmax sum calculation
+        sum += out.data[i];
+    }
+
+    out.scale(1.0 / sum);
+
+    true
+}
+
+
+pub fn mat_cross_entropy(out: &mut Matrix, p: &Matrix, q: &Matrix) -> bool {
+    //check if all dimensions match
+    if p.rows != q.rows || p.cols != q.cols {
+        return false;
+    }
+
+    if out.rows != p.rows || out.cols != p.cols {
+        return false;
+    }
+
+    for i: usize in 0..out.data.len() {
+        out.data[i] = if p.data[i] == 0.0 {
+            0.0
+        } else {
+            p.data[i] * -q.data[i].ln()
+        };
+    }
+
+    true
+
+}
+
+
+pub fn mat_relu_add_grad(out: &mut Matrix, input: &Matrix grad: &Matrix) -> bool {
+    if out.rows != input.rows || out.cols != input.cols {
+        return false;
+    }
+    if out.rows != grad.rows || out.cols != grad.cols {
+        return false;
+    } 
+
+    for i: usize in 0..out.data.len() { //only set gradient if the index has not died out
+        out.data[i] += if input.data[i] > 0.0 { grad.data[i] } else { 0.0 };
+    }
+
+    true 
+}
+
+
+pub fn mat_softmax_add_grad(out: &mut Matrix, softmax_out: &Matrix, grad: &Matrix) -> bool {
+    if softmax_out.rows != 1 && softmax_out.cols != 1 {
+        return false;
+    }
+
+    let size = softmax_out.rows.max(softmax_out.cols);
+    let mut jacobian = Matrix::new(size, size);
+
+    for i in 0..size {
+        for j in 0..size {
+            let delta = if i == j { 1.0 } else { 0.0 };
+            jacobian.data[j + i * size] = softmax_out.data[i] * (delta - softmax_out.data[j]);
+        }
+    }
+
+    mat_mul(out, &jacobian, grad, false, false, false);
+
+    true
+}
+
+pub fn mat_cross_entropy_add_grad(
+    p_grad: Option<&mut Matrix>,
+    q_grad: Option<&mut Matrix>,
+    p: &Matrix,
+    q: &Matrix,
+    grad: &Matrix,
+) -> bool {
+    if p.rows != q.rows || p.cols != q.cols {
+        return false;
+    }
+
+    let size = p.rows * p.cols;
+
+    if let Some(p_grad) = p_grad {
+        if p_grad.rows != p.rows || p_grad.cols != p.cols {
+            return false;
+        }
+
+        for i in 0..size {
+            p_grad.data[i] += -q.data[i].ln() * grad.data[i];
+        }
+    }
+
+    if let Some(q_grad) = q_grad {
+        if q_grad.rows != q.rows || q_grad.cols != q.cols {
+            return false;
+        }
+
+        for i in 0..size {
+            q_grad.data[i] += -p.data[i] / q.data[i] * grad.data[i];
+        }
+    }
+
+    true
+}
+
 
 
