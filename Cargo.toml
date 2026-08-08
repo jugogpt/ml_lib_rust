@@ -2,13 +2,20 @@
 name = "ml_lib_rust"
 version = "0.1.0"
 edition = "2024"
+description = "Embeddable on-device autodiff and training for Rust apps"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 rayon = "1.10"
+memmap2 = "0.9"
 
-[[bin]]
-name = "ml_lib_rust"
-path = "main.rs"
+[[example]]
+name = "mnist"
+path = "examples/mnist.rs"
+
+[[example]]
+name = "adapt"
+path = "examples/adapt.rs"
 
 [profile.release]
 lto = true

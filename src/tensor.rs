@@ -4,6 +4,7 @@ use crate::prng::Prng;
 use rayon::prelude::*;
 use std::fs;
 use std::io;
+use std::path::Path;
 
 fn read_be_u32(bytes: &[u8], offset: usize) -> u32 {
     u32::from_be_bytes([
@@ -137,7 +138,7 @@ impl Tensor {
     }
 
     /// Load MNIST IDX images as `[N, H*W]` with pixels in `[0, 1]`.
-    pub fn load_idx_images(filename: &str) -> io::Result<Self> {
+    pub fn load_idx_images(filename: impl AsRef<Path>) -> io::Result<Self> {
         let bytes = fs::read(filename)?;
         if bytes.len() < 16 {
             return Err(io::Error::new(
@@ -171,7 +172,7 @@ impl Tensor {
     }
 
     /// Load MNIST IDX images as NCHW `[N, 1, H, W]`.
-    pub fn load_idx_images_nchw(filename: &str) -> io::Result<Self> {
+    pub fn load_idx_images_nchw(filename: impl AsRef<Path>) -> io::Result<Self> {
         let bytes = fs::read(filename)?;
         if bytes.len() < 16 {
             return Err(io::Error::new(
@@ -203,7 +204,7 @@ impl Tensor {
         Ok(Tensor::from_vec(&[n, 1, h, w], data))
     }
 
-    pub fn load_idx_labels(filename: &str) -> io::Result<Self> {
+    pub fn load_idx_labels(filename: impl AsRef<Path>) -> io::Result<Self> {
         let bytes = fs::read(filename)?;
         if bytes.len() < 8 {
             return Err(io::Error::new(

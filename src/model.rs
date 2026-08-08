@@ -851,6 +851,31 @@ impl ModelContext {
             }
         }
     }
+
+    /// Indices of variables marked `MV_FLAG_PARAMETER`, in creation order.
+    pub fn parameter_indices(&self) -> Vec<usize> {
+        self.vars
+            .iter()
+            .filter(|v| v.flags & MV_FLAG_PARAMETER != 0)
+            .map(|v| v.index)
+            .collect()
+    }
+
+    pub fn clear_parameter_grads(&self) {
+        for &i in &self.parameter_indices() {
+            if self.vars[i].has_grad() {
+                self.vars[i].grad_mut().clear();
+            }
+        }
+    }
+
+    /// Approximate parameter storage in bytes (f32 weights only).
+    pub fn parameter_bytes(&self) -> u64 {
+        self.parameter_indices()
+            .iter()
+            .map(|&i| (self.vars[i].val().numel() * 4) as u64)
+            .sum()
+    }
 }
 
 fn matmul_out_shape(
