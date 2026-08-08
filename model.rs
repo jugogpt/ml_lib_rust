@@ -83,7 +83,7 @@ impl ModelVar {
     }
 
     fn requires_grad(&self) -> bool {
-        self.flag & MV_FLAG_REQUIRES_GRAD != 0
+        self.flags & MV_FLAG_REQUIRES_GRAD != 0
     }
 
 }
@@ -105,7 +105,7 @@ pub struct ModelContext {
 
 impl ModelContext {
     pub fn new() -> Self {
-        ModelConext {
+        ModelContext {
             vars: Vec::new(),
             input: None,
             output: None,
@@ -316,7 +316,7 @@ impl ModelContext {
         }
 
         ModelProgram { vars: out }
-        
+
     }
 
     
